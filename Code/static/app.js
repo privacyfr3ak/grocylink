@@ -201,7 +201,17 @@ const CHANNEL_FIELDS = {
         { key: 'password', labelKey: 'ch.password', type: 'password' },
         { key: 'from_email', labelKey: 'ch.from_email', type: 'email' },
         { key: 'to_email', labelKey: 'ch.to_email', type: 'email' },
-        { key: 'use_tls', labelKey: 'ch.use_tls', type: 'checkbox', default: true },
+        {
+            key: 'encryption',
+            labelKey: 'ch.encryption',
+            type: 'select',
+            default: 'starttls',
+            options: [
+                { value: 'none', label: 'None' },
+                { value: 'starttls', label: 'STARTTLS' },
+                { value: 'ssl', label: 'SSL/TLS' },
+            ],
+        },
     ],
     pushover: [
         { key: 'api_token', labelKey: 'ch.api_token', type: 'text' },
@@ -286,6 +296,23 @@ function updateChannelFields(existingConfig = {}) {
                 </label>
             </div>`;
         }
+
+        if (f.type === 'select') {
+            const options = (f.options || []).map(option => `
+                <option value="${esc(String(option.value))}"
+                    ${String(val) === String(option.value) ? 'selected' : ''}>
+                    ${esc(option.label)}
+                </option>
+            `).join('');
+
+            return `<div class="form-group">
+                <label for="cfg_${esc(f.key)}">${esc(label)}</label>
+                <select id="cfg_${esc(f.key)}">
+                    ${options}
+                </select>
+            </div>`;
+        }
+
         return `<div class="form-group">
             <label>${esc(label)}</label>
             <input type="${f.type}" id="cfg_${f.key}" value="${esc(String(val))}" placeholder="${esc(f.placeholder || '')}">

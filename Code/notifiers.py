@@ -27,15 +27,19 @@ class BaseNotifier:
 class EmailNotifier(BaseNotifier):
     def send(self, title, message):
         cfg = self.config
+        encryption = str(cfg.get('encryption')).lower()
         msg = MIMEMultipart()
         msg['From'] = cfg.get('from_email', cfg['username'])
         msg['To'] = cfg['to_email']
         msg['Subject'] = title
         msg.attach(MIMEText(message, 'plain', 'utf-8'))
 
-        server = smtplib.SMTP(cfg['smtp_host'], int(cfg.get('smtp_port', 587)))
+        if encryption == 'ssl':
+            server = smtplib.SMTP_SSL(cfg['smtp_host'], int(cfg.get('smtp_port', 465)))
+        else:
+            server = smtplib.SMTP(cfg['smtp_host'], int(cfg.get('smtp_port', 587)))
         server.ehlo()
-        if cfg.get('use_tls', True):
+        if encryption == 'starttls':
             server.starttls()
         if cfg.get('username') and cfg.get('password'):
             server.login(cfg['username'], cfg['password'])
